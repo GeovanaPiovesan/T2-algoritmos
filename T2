@@ -1,0 +1,110 @@
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+#include <stdbool.h>
+#include "manipuladorTexto.h"
+#pragma warning (disable:4996)
+
+bool validarCPF(const char* cpf) {
+    int tamanho = strlen(cpf);
+
+    if (tamanho != 11) {
+        return false;
+    }
+
+    for (int i = 0; i < tamanho; i++) {
+        if (!isdigit(cpf[i])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void formatarCPF(const char* cpf, char* cpfFormatado) {
+    if (!validarCPF(cpf)) {
+        strcpy(cpfFormatado, "CPF inválido");
+        return;
+    }
+
+    sprintf(cpfFormatado, "%.3s.%.3s.%.3s-%.2s", cpf, cpf + 3, cpf + 6, cpf + 9);
+}
+
+int main() {
+    char cpf[12];
+    char cpfFormatado[15];
+    char nomeProduto[200];
+    int quantidade;
+    float valorUnitario;
+    float subtotal;
+    float faturamento = 0.0;
+    float imposto, lucro;
+    char parar = 'N';
+    int vendas = 0;
+
+    char relatorio[5000] = "INICIO DAS VENDAS:\n";
+    char linha[300];
+
+    while (vendas < 50) {
+        printf("\nDigite o CPF do cliente (somente números): ");
+        scanf(" %11s", cpf);
+
+        if (!validarCPF(cpf)) {
+            printf("CPF inválido! Tente novamente.\n");
+            continue;
+        }
+
+        formatarCPF(cpf, cpfFormatado);
+        sprintf(linha, "Cliente: %s\n", cpfFormatado);
+        strcat(relatorio, linha);
+
+        do {
+            printf("\nDigite o nome do produto: ");
+            scanf(" %[^\n]", nomeProduto);
+
+            printf("Digite a quantidade do produto: ");
+            scanf("%d", &quantidade);
+
+            printf("Digite o valor unitário do produto: ");
+            scanf("%f", &valorUnitario);
+
+            subtotal = quantidade * valorUnitario;
+            faturamento += subtotal;
+
+            sprintf(linha, " Item comprado: %d - %s, valor unitario: %.2f, subtotal: %.2f\n", quantidade, nomeProduto, valorUnitario, subtotal);
+            strcat(relatorio, linha);
+
+            printf("Produto: %s, Quantidade: %d, Valor Unitário: %.2f, Subtotal: %.2f\n",
+                nomeProduto, quantidade, valorUnitario, subtotal);
+
+            printf("Deseja parar de inserir produtos? (S/N): ");
+            scanf(" %c", &parar);
+
+        } while (parar == 'n' || parar == 'N');
+
+        sprintf(linha, "Total da compra: %.2f\n", faturamento);
+        strcat(relatorio, linha);
+
+        vendas++;
+        printf("\nVenda registrada com sucesso! Total de vendas: %d\n", vendas);
+
+        printf("Deseja parar de registrar vendas? (S/N): ");
+        scanf(" %c", &parar);
+
+        if (parar == 's' || parar == 'S') {
+            break;
+        }
+    }
+
+    imposto = faturamento * 0.15;
+    lucro = (faturamento - imposto) * 0.25;
+
+    sprintf(linha, "FATURAMENTO: %.2f\nIMPOSTO: %.2f\nLUCRO: %.2f\n", faturamento, imposto, lucro);
+    strcat(relatorio, linha);
+
+    printf("\nRelatório:\n%s", relatorio);
+    salvarTexto("relatorio_vendas.txt", relatorio);
+
+    printf("\nEncerrando o programa. Relatório salvo em 'relatorio_vendas.txt'.\n");
+    return 0;
+}
